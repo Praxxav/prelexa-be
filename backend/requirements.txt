@@ -66,5 +66,5 @@ urllib3==2.2.2
 uvicorn==0.30.1
 watchfiles==0.21.0
 websockets==12.0
-prisma-client-py==0.15.0
+
 
