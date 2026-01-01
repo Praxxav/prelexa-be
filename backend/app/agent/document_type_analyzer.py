@@ -101,37 +101,66 @@ class DocumentTypeAnalyzer:
         try:
             # --- Step 1: Classify document type ---
             type_prompt = f"""
-            Analyze this document and identify its type.
+            You are an expert document classification system.
 
-            Content (first 2000 chars): {content[:2000]}
+                Analyze the document content and determine the MOST LIKELY document type.
 
-            Return ONLY valid JSON in this structure:
-            {{
-                "document_type": "Invoice" or "NDA" or "Resume",
-                "confidence": 0.9,
-                "category": "Legal" or "Finance" or "Personal",
-                "key_identifiers": ["name", "date", "amount"]
-            }}
+                Rules:
+                - If the document matches a known type, be specific (Resume, Invoice, NDA, Offer Letter, Bank Statement, ID Proof, Certificate, Notice, Form, Report, Letter, etc.)
+                - If it does NOT clearly match any known type, return "Generic Document"
+                - NEVER return an empty or missing field
+                - Confidence must be between 0.0 and 1.0
+
+                Document Content (first 2000 chars):
+                {content[:2000]}
+
+                Return ONLY valid JSON in this exact structure:
+                {{
+                "document_type": "Resume | Invoice | Agreement | Certificate | Letter | Generic Document",
+                "confidence": 0.0,
+                "category": "Legal | Finance | HR | Education | Personal | Business | Other",
+                "key_identifiers": ["names", "dates", "amounts", "ids", "emails"]
+                }}
             """
             type_text = await self._safe_generate(type_prompt)
             type_data = self._extract_json_from_text(type_text) if type_text else {}
 
             # --- Step 2: Extract fields ---
             fields_prompt = f"""
-            Given that this is a "{type_data.get('document_type', 'Unknown')}" document,
-            extract all meaningful fields with their detected values.
+           You are an expert data extraction system.
 
-            Return ONLY valid JSON like this:
-            {{
+                The document type is: "{type_data.get('document_type', 'Generic Document')}"
+
+                Your job:
+                - ALWAYS extract meaningful fields
+                - The fields array MUST contain at least 5 items
+                - If a value is not clearly found, set value to null
+                - Use snake_case for field names
+                - Fields MUST be relevant to the document OR generic metadata
+
+                If the document is unclear or unstructured, extract GENERIC fields such as:
+                - document_summary
+                - primary_entity
+                - secondary_entity
+                - important_dates
+                - reference_numbers
+                - contact_information
+                - detected_keywords
+                - raw_excerpt
+
+                Return ONLY valid JSON in this structure:
+                {{
                 "fields": [
                     {{
-                        "name": "Field name",
-                        "value": "Detected value or null",
-                        "required": true,
-                        "description": "Brief description"
+                    "name": "snake_case_name",
+                    "value": "string | number | date | null",
+                    "required": false,
+                    "description": "What this field represents"
                     }}
                 ]
-            }}
+                }}
+
+                Failure to return at least 5 fields is NOT acceptable.
             """
             fields_text = await self._safe_generate(fields_prompt)
             fields_data = self._extract_json_from_text(fields_text) if fields_text else {}
@@ -153,7 +182,7 @@ class DocumentTypeAnalyzer:
     def _get_default_analysis(self) -> Dict:
         """Default response when analysis fails."""
         return {
-            "document_type": "Unknown",
+            "document_type": "Generic Document",
             "confidence": 0.0,
             "category": "Unknown",
             "key_identifiers": [],

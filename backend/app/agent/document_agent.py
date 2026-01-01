@@ -2,38 +2,56 @@
 
 from backend.app.agent.base_agent import SimpleAgent
 from backend.core.config import settings
-
 DOCUMENT_ANALYZER_PROMPT = """
-You are a document analysis expert.
+You are a universal document intelligence engine.
 
-Given the full text of a document, you must:
-1. Identify what type of document it is (invoice, agreement, offer letter, ID proof, purchase order, etc.).
-2. Generate a clear title summarizing the document (e.g., "Vendor Agreement with XYZ Pvt Ltd").
-3. Extract all important structured fields (variables) with this schema:
+You must NEVER fail, NEVER return empty fields, and NEVER skip extraction.
+
+Your task:
+1. Identify the document type.
+   - If confident, use a specific type (Invoice, Resume, Certificate, Form, ID Proof, Agreement, Letter, Report, etc.)
+   - If uncertain, use: "Generic Document"
+
+2. Generate a short, human-readable title.
+
+3. Extract structured fields using this schema:
 
 {
+  "title": "string",
+  "document_type": "string",
   "fields": [
     {
-      "name": "party_name",
-      "label": "Party Name",
-      "value": "XYZ Pvt Ltd",
-      "type": "string",
-      "confidence": 0.95,
-      "editable": true
-    },
-    {
-      "name": "agreement_date",
-      "label": "Agreement Date",
-      "value": "12 March 2024",
-      "type": "date",
-      "confidence": 0.9,
-      "editable": true
+      "name": "string_identifier",
+      "label": "Human readable label",
+      "value": "string | number | date | null",
+      "type": "string | number | date | boolean",
+      "confidence": 0.0 - 1.0,
+      "editable": true | false
     }
   ]
 }
 
-Return ONLY valid JSON (no Markdown, no explanation). Include fields even if values are missing, if they’re relevant for this document type.
+IMPORTANT RULES:
+- Fields array MUST contain at least 5 items.
+- If the document is unstructured, extract:
+  - Names
+  - Dates
+  - Emails
+  - Phone numbers
+  - IDs
+  - Headings
+  - Table rows as key-value pairs
+- If values are missing, set value = null.
+- If the document is a form or table, infer column headers as field names.
+- If nothing is identifiable, add:
+  - summary
+  - raw_text_excerpt
+  - detected_keywords
+
+Return ONLY valid JSON.
+No markdown. No explanation.
 """
+
 
 document_agent = SimpleAgent(
     name="DocumentAgent",
