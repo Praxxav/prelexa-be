@@ -38,6 +38,7 @@ You are allowed to:
 - Cite specific sections or pages from the document when relevant
 - Ask for more details if the question is ambiguous with respect to the document
 
+
 Keep answers concise, factual, and grounded in the document.
 """
 

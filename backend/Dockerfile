@@ -1,25 +1,23 @@
 FROM python:3.11-slim
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+    curl \
+    libatomic1 \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Install Python deps
+# Install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Install Prisma CLI
 RUN pip install prisma
 
-# Copy source code
-COPY . .
+# Copy backend as a package
+COPY . /app/backend
 
-# Generate Prisma client
-RUN prisma generate
+# Make Python see backend
+ENV PYTHONPATH=/app
 
-# Railway provides PORT automatically
 EXPOSE 8000
 
-# Start FastAPI (NO reload)
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "python -m prisma generate --schema backend/prisma/schema.prisma && uvicorn backend.app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

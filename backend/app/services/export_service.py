@@ -5,7 +5,7 @@ from docx.shared import Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 import subprocess
 import platform
-import docx2pdf
+
 
 def create_docx_from_markdown(markdown_content: str, title: str = "Document") -> str:
     """
