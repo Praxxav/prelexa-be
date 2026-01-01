@@ -9,56 +9,51 @@ datasource db {
 }
 
 model Document {
-  id             String              @id @default(cuid())
-  orgId          String 
+  id             String             @id @default(cuid())
+  orgId          String
   status         String
-  insights       String?             // JSON stored as string
+  insights       String?
   fullText       String?
   filePath       String?
-  metadata       String?             @db.Text // JSON metadata
-  createdAt      DateTime            @default(now()) @map("created_at")
-  updatedAt      DateTime            @updatedAt @map("updated_at")
-
-  documentType   String?             @map("document_type")
-  documentTypeId String?             @map("document_type_id")
-  type           DocumentType?       @relation(fields: [documentTypeId], references: [id], onDelete: SetNull)
-
-  variables      DocumentVariable[]  
+  metadata       String?
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+  documentType   String?            @map("document_type")
+  documentTypeId String?            @map("document_type_id")
+  variables      DocumentVariable[]
+  type           DocumentType?      @relation(fields: [documentTypeId], references: [id])
 
   @@map("documents")
 }
 
 model DocumentVariable {
-  id          String   @id @default(cuid())
-  documentId  String   @map("document_id")
-  name        String
-  value       String?
-  confidence  Float?
-  editable    Boolean  @default(true)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  // Relation back to Document
-  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  documentId String   @map("document_id")
+  name       String
+  value      String?
+  confidence Float?
+  editable   Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
 
   @@map("document_variables")
 }
 
 model Template {
-  id                  String             @id @default(cuid())
-  orgId          String 
-  title               String
-  fileDescription     String?            @map("file_description")
-  jurisdiction        String?
-  originalDocumentId  String?
-  docType             String?            @map("doc_type")
-  similarityTags      String[]           @map("similarity_tags")
-  bodyMd              String             @map("body_md")
-  createdAt           DateTime           @default(now()) @map("created_at")
-  updatedAt           DateTime           @updatedAt @map("updated_at")
-
-  instances           Instance[]
-  variables           TemplateVariable[]
+  id                 String             @id @default(cuid())
+  orgId              String
+  title              String
+  fileDescription    String?            @map("file_description")
+  jurisdiction       String?
+  originalDocumentId String?
+  docType            String?            @map("doc_type")
+  similarityTags     String[]           @map("similarity_tags")
+  bodyMd             String             @map("body_md")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+  instances          Instance[]
+  variables          TemplateVariable[]
 
   @@map("templates")
 }
@@ -82,13 +77,12 @@ model TemplateVariable {
 
 model Instance {
   id          String   @id @default(cuid())
-  orgId          String 
+  orgId       String
   templateId  String   @map("template_id")
   userQuery   String   @default("") @map("user_query")
   answersJson String   @map("answers_json")
   draftMd     String   @map("draft_md")
   createdAt   DateTime @default(now()) @map("created_at")
-
   template    Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
 
   @@map("instances")
@@ -98,12 +92,21 @@ model DocumentType {
   id          String     @id @default(cuid())
   name        String     @unique
   category    String?
-  description String?    @db.Text
-  fields      String?    @db.Text
-  metadata    String?    @db.Text
+  description String?
+  fields      String?
+  metadata    String?
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime   @updatedAt @map("updated_at")
+  documents   Document[]
 
-  documents   Document[] 
   @@map("document_types")
+}
+
+model ChatMessage {
+  id         String   @id @default(cuid())
+  orgId      String
+  documentId String   @map("document_id")
+  content    String
+  role       String
+  createdAt  DateTime @default(now()) @map("created_at")
 }

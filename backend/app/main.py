@@ -10,9 +10,10 @@ from backend.app.api.documents import router as documents_router
 from backend.app.api.templates import router as templates_router    
 from backend.app.api.export import router as export_router
 from backend.app.api.document_variables import router as document_variables_router
+from backend.app.api.chat import router as chat_router
 # Create FastAPI app
 app = FastAPI(
-    title="Intelligent Document Analysis Agent",
+    title="Prelexa AI Document Analysis API",
     description="API for AI-powered legal document review and insight generation.",
     version="0.2.0",
     lifespan=lifespan
@@ -36,6 +37,7 @@ app.include_router(documents_router, tags=["documents"])
 app.include_router(templates_router, tags=["templates"])
 app.include_router(export_router, prefix="/export", tags=["export"])
 app.include_router(document_variables_router, tags=["Document Variables"])
+app.include_router(chat_router)
 # app.include_router(export_router, prefix="/api")
 
 
