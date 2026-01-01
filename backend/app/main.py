@@ -16,7 +16,8 @@ app = FastAPI(
     title="Prelexa AI Document Analysis API",
     description="API for AI-powered legal document review and insight generation.",
     version="0.2.0",
-    lifespan=lifespan
+    lifespan=lifespan,
+    redirect_slashes=False
 )
 
 # Configure CORS
