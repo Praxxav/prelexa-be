@@ -5,7 +5,8 @@ from datetime import datetime
 from backend.app.agent.chat_agent import DocumentChatAgent
 from backend.core.config import settings
 from backend.db.database import db
-from backend.app.websocket.websocket_manager import ConnectionManager as manager
+from backend.app.websocket.websocket_manager import connection_manager as manager
+
 
 logger = logging.getLogger(__name__)
 
